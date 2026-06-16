@@ -540,17 +540,19 @@ with tab_csv:
         if uploaded_file is not None:
             try:
                 df_upload = pd.read_csv(uploaded_file)
-                    # Hapus seluruh kolom Unnamed
-                    df_upload = df_upload.loc[
-                        :, ~df_upload.columns.str.contains("^Unnamed")
-                    ]
-                    
-                    # Hapus kolom yang seluruh isinya kosong
-                    df_upload = df_upload.dropna(
-                        axis=1,
-                        how="all"
-                    )
-            except Exception as e:  # noqa: BLE001
+            
+                # Bersihkan kolom Unnamed
+                df_upload = df_upload.loc[
+                    :, ~df_upload.columns.str.contains("^Unnamed")
+                ]
+            
+                # Bersihkan kolom kosong
+                df_upload = df_upload.dropna(
+                    axis=1,
+                    how="all"
+                )
+            
+            except Exception as e:
                 st.error(f"Gagal membaca file CSV: {e}")
                 df_upload = None
 
