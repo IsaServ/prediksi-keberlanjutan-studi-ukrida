@@ -395,35 +395,47 @@ with tab_manual:
         col1, col2 = st.columns(2)
 
         with col1:
+        
             in_semester = st.text_input(
-                "Semester Saat Ini", placeholder="Contoh: 4"
+                "Semester Saat Ini",
+                placeholder="Contoh: 4"
             )
-        with col2:
-            in_ipk = st.text_input("IPK Saat Ini", placeholder="Contoh: 3.73")
-
-        with col1:
+        
+            in_ipk = st.text_input(
+                "IPK Saat Ini",
+                placeholder="Contoh: 3.73"
+            )
+        
             in_ips = st.text_input(
-                "IPS Semester Berjalan", placeholder="Contoh: 3.55"
+                "IPS Semester Berjalan",
+                placeholder="Contoh: 3.55"
             )
+        
+            in_sks = st.text_input(
+                "Total SKS Lulus",
+                placeholder="Contoh: 72"
+            )
+        
         with col2:
-            in_sks = st.text_input("Total SKS Lulus", placeholder="Contoh: 72")
-
-        with col1:
+        
             in_keuangan = st.selectbox(
-                "Status Keuangan", options=["Lunas", "Belum Lunas"]
+                "Status Keuangan",
+                ["Lunas", "Belum Lunas"]
             )
-        with col2:
+        
             in_softskill = st.text_input(
-                "Total Poin Soft Skill", placeholder="Contoh: 85"
+                "Total Poin Soft Skill",
+                placeholder="Contoh: 85"
             )
-
-        with col1:
+        
             in_bimb_pending = st.text_input(
-                "Bimbingan Pending", placeholder="Contoh: 1"
+                "Bimbingan Pending",
+                placeholder="Contoh: 1"
             )
-        with col2:
+        
             in_bimb_jumlah = st.text_input(
-                "Jumlah Bimbingan Semester Berjalan", placeholder="Contoh: 3"
+                "Jumlah Bimbingan Semester Berjalan",
+                placeholder="Contoh: 3"
             )
 
         st.caption("＊ Semua field wajib diisi untuk mendapatkan hasil prediksi yang akurat.")
@@ -550,9 +562,10 @@ with tab_csv:
                             st.markdown(f"- {e}")
                     else:
                         # ---------- Prediksi Massal ----------
-                        x_batch = df_bersih[FITUR_MODEL[:-1] + ["Status_Keuangan"]].copy()
-                        x_batch["Status_Keuangan"] = df_bersih["Status_Keuangan_Encoded"]
-                        x_batch = x_batch[FITUR_MODEL]
+                        x_batch = df_bersih[FITUR_MODEL].copy()
+                        x_batch["Status_Keuangan"] = (
+                            df_bersih["Status_Keuangan_Encoded"]
+                        )
 
                         pred_classes = model.predict(x_batch)
                         pred_probas = model.predict_proba(x_batch)[:, 1] * 100
