@@ -540,13 +540,26 @@ with tab_csv:
         if uploaded_file is not None:
             try:
                 df_upload = pd.read_csv(uploaded_file)
+                    # Hapus seluruh kolom Unnamed
+                    df_upload = df_upload.loc[
+                        :, ~df_upload.columns.str.contains("^Unnamed")
+                    ]
+                    
+                    # Hapus kolom yang seluruh isinya kosong
+                    df_upload = df_upload.dropna(
+                        axis=1,
+                        how="all"
+                    )
             except Exception as e:  # noqa: BLE001
                 st.error(f"Gagal membaca file CSV: {e}")
                 df_upload = None
 
             if df_upload is not None:
                 st.markdown("**Pratinjau Data:**")
-                st.dataframe(df_upload.head(5), use_container_width=True)
+                st.dataframe(
+                    df_upload[FITUR_MODEL].head(5),
+                    use_container_width=True
+                )
 
                 proses_csv = st.button("📊  Proses File CSV")
 
@@ -577,6 +590,17 @@ with tab_csv:
                             "Berisiko Tidak Melanjutkan Studi",
                         )
                         hasil_df["Probabilitas_Risiko"] = np.round(pred_probas, 1)
+
+                        top3 = get_top3_feature_importance(model)
+
+                        hasil_df["Faktor_1"] = top3.iloc[0]["Label"]
+                        hasil_df["Persentase_1"] = round(top3.iloc[0]["Persentase"], 1)
+                        
+                        hasil_df["Faktor_2"] = top3.iloc[1]["Label"]
+                        hasil_df["Persentase_2"] = round(top3.iloc[1]["Persentase"], 1)
+                        
+                        hasil_df["Faktor_3"] = top3.iloc[2]["Label"]
+                        hasil_df["Persentase_3"] = round(top3.iloc[2]["Persentase"], 1)
 
                         n_total = len(hasil_df)
                         n_risk = int((pred_classes == 1).sum())
