@@ -1,8 +1,3 @@
-# ============================================================
-#  PREDIKSI KEBERLANJUTAN STUDI MAHASISWA
-#  Program Studi Sistem Informasi UKRIDA
-#  Model: Random Forest (random_forest_ukrida.sav)
-# ============================================================
 import io
 import pickle
 
@@ -11,9 +6,7 @@ import pandas as pd
 import shap
 import streamlit as st
 
-# ============================================================
 # 1. KONFIGURASI HALAMAN
-# ============================================================
 st.set_page_config(
     page_title="Prediksi Keberlanjutan Studi Mahasiswa — UKRIDA",
     page_icon="🎓",
@@ -21,9 +14,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed",
 )
 
-# ============================================================
 # 2. KONSTANTA — FITUR, LABEL, DAN ENCODING
-# ============================================================
 FITUR_MODEL = [
     "Semester_Saat_Ini",
     "IPK_Saat_Ini",
@@ -55,9 +46,7 @@ NAMA_FILE_MODEL = "random_forest_ukrida.sav"
 KOLOM_NUMERIK = [c for c in FITUR_MODEL if c != "Status_Keuangan"]
 
 
-# ============================================================
 # 3. CSS — TEMA WARNA UKRIDA
-# ============================================================
 st.markdown(
     """
     <style>
@@ -206,9 +195,7 @@ st.markdown(
 )
 
 
-# ============================================================
 # 4. LOAD MODEL (.sav) MENGGUNAKAN PICKLE
-# ============================================================
 @st.cache_resource(show_spinner=False)
 def load_model(path: str):
     """Memuat model Random Forest dari file pickle (.sav)."""
@@ -229,9 +216,7 @@ except Exception as e:  # noqa: BLE001
     model_error = f"Gagal memuat model: {e}"
 
 
-# ============================================================
 # 4B. INISIALISASI SHAP TREEEXPLAINER (UNTUK LOCAL EXPLANATION)
-# ============================================================
 @st.cache_resource(show_spinner=False)
 def load_explainer(_model):
     """Membangun SHAP TreeExplainer dari model Random Forest yang sudah dilatih."""
@@ -246,9 +231,7 @@ if model is not None:
         model_error = f"Gagal membangun SHAP explainer: {e}"
 
 
-# ============================================================
 # 5. FUNGSI BANTUAN
-# ============================================================
 def encode_status_keuangan(nilai: str):
     """Mengonversi 'Lunas'/'Belum Lunas' menjadi 1/0."""
     return ENCODING_KEUANGAN.get(nilai, np.nan)
@@ -445,9 +428,7 @@ def buat_template_csv() -> str:
     return contoh.to_csv(index=False)
 
 
-# ============================================================
 # 6. HEADER
-# ============================================================
 st.markdown(
     """
     <div class="ukrida-header">
@@ -464,15 +445,11 @@ if model_error:
     st.stop()
 
 
-# ============================================================
 # 7. TAB NAVIGASI
-# ============================================================
 tab_manual, tab_csv = st.tabs(["📋  Input Data Manual", "📤  Prediksi Massal (CSV)"])
 
 
-# ════════════════════════════════════════════════════════════
 # TAB 1 — INPUT DATA MANUAL
-# ════════════════════════════════════════════════════════════
 with tab_manual:
     st.markdown(
         '<div class="ukrida-section-title">Input Data Mahasiswa</div>'
@@ -588,9 +565,7 @@ with tab_manual:
                 st.progress(min(float(row.Persentase) / 100, 1.0))
 
 
-# ════════════════════════════════════════════════════════════
 # TAB 2 — PREDIKSI MASSAL MENGGUNAKAN CSV
-# ════════════════════════════════════════════════════════════
 with tab_csv:
     st.markdown(
         '<div class="ukrida-section-title">Prediksi Massal Menggunakan File CSV</div>'
@@ -626,6 +601,10 @@ with tab_csv:
         if uploaded_file is not None:
             try:
                 df_upload = pd.read_csv(uploaded_file)
+                df_upload = df_upload.loc[
+                    :,
+                    ~df_upload.columns.str.contains("^Unnamed")
+                ]
             except Exception as e:  # noqa: BLE001
                 st.error(f"Gagal membaca file CSV: {e}")
                 df_upload = None
@@ -648,9 +627,11 @@ with tab_csv:
                             st.markdown(f"- {e}")
                     else:
                         # ---------- Prediksi Massal ----------
-                        x_batch = df_bersih[FITUR_MODEL[:-1] + ["Status_Keuangan"]].copy()
-                        x_batch["Status_Keuangan"] = df_bersih["Status_Keuangan_Encoded"]
-                        x_batch = x_batch[FITUR_MODEL]
+                        x_batch = df_bersih[FITUR_MODEL].copy()
+
+                        x_batch["Status_Keuangan"] = (
+                            df_bersih["Status_Keuangan_Encoded"]
+                        )
 
                         pred_classes = model.predict(x_batch)
                         pred_probas = model.predict_proba(x_batch)[:, 1] * 100
@@ -660,6 +641,11 @@ with tab_csv:
                         faktor_individual = get_shap_contributions_batch(x_batch, top_n=3)
 
                         hasil_df = df_upload.loc[df_bersih.index].copy()
+                        hasil_df = hasil_df.loc[
+                            :,
+                            ~hasil_df.columns.str.contains("^Unnamed")
+                        ]
+                        
                         hasil_df["Prediksi"] = np.where(
                             pred_classes == 0,
                             "Aman Melanjutkan Studi",
@@ -692,9 +678,7 @@ with tab_csv:
                         )
 
 
-# ============================================================
 # 8. FOOTER
-# ============================================================
 st.markdown(
     """
     <div class="ukrida-footer">
